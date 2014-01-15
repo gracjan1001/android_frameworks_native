@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2008 The Android Open Source Project
+ * Copyright (c) 2011, Code Aurora Forum. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,38 +15,42 @@
  * limitations under the License.
  */
 
-#ifndef ANDROID_MEMORY_BASE_H
-#define ANDROID_MEMORY_BASE_H
+#ifndef ANDROID_MEMORY_HEAP_ION_H
+#define ANDROID_MEMORY_HEAP_ION_H
 
 #include <stdlib.h>
 #include <stdint.h>
 
+#include <binder/MemoryHeapBase.h>
 #include <binder/IMemory.h>
-
+#include <utils/SortedVector.h>
+#include <utils/threads.h>
+#include <linux/ion.h>
 
 namespace android {
 
+class MemoryHeapBase;
+
 // ---------------------------------------------------------------------------
 
-class MemoryBase : public BnMemory 
+class MemoryHeapIon : public MemoryHeapBase
 {
 public:
-    MemoryBase(const sp<IMemoryHeap>& heap, ssize_t offset, size_t size);
-    virtual ~MemoryBase();
-    virtual sp<IMemoryHeap> getMemory(ssize_t* offset, size_t* size) const;
+    MemoryHeapIon(const char*, size_t, uint32_t, long unsigned int);
+    MemoryHeapIon();
+    ~MemoryHeapIon();
 
-protected:
-    size_t getSize() const { return mSize; }
-    ssize_t getOffset() const { return mOffset; }
-    const sp<IMemoryHeap>& getHeap() const { return mHeap; }
+    status_t mapIonFd(int fd, size_t size, unsigned long memory_type, int flags);
+
+    status_t ionInit(int ionFd, void *base, int size, int flags,
+                                const char* device, struct ion_handle *handle,
+                                int ionMapFd);
 
 private:
-    size_t          mSize;
-    ssize_t         mOffset;
-    sp<IMemoryHeap> mHeap;
-};
+	int mIonDeviceFd;  /*fd we get from open("/dev/ion")*/
+	struct ion_handle *mIonHandle;  /*handle we get from ION_IOC_ALLOC*/ };
 
 // ---------------------------------------------------------------------------
 }; // namespace android
 
-#endif // ANDROID_MEMORY_BASE_H
+#endif // ANDROID_MEMORY_HEAP_ION_H

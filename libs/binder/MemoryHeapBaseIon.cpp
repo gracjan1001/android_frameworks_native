@@ -51,6 +51,7 @@ MemoryHeapBaseIon::MemoryHeapBaseIon(size_t size, uint32_t flags, char const *na
     void* base = NULL;
     int fd = ion_alloc(mIonClient, size, 0, ION_HEAP_EXYNOS_MASK);
 
+    ALOGE_IF(fd < 0, "MemoryHeapBaseIon : ION memory allocation failed");
     if (fd < 0) {
         ALOGE("MemoryHeapBaseIon : ION memory allocation failed");
     } else {
